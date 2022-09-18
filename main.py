@@ -2,33 +2,27 @@ from bitstring import BitArray
 
 def IP(a):
     b = BitArray(8)
+    IP_pos = (2, 6, 3, 1, 4, 8, 5, 7)
 
-    b.set(a[1], 0)
-    b.set(a[5], 1)
-    b.set(a[2], 2)
-    b.set(a[0], 3)
-    b.set(a[3], 4)
-    b.set(a[7], 5)
-    b.set(a[4], 6)
-    b.set(a[6], 7)
+    i = 0
+    for pos in IP_pos:
+        b.set(a[pos - 1], i)
+        i += 1
 
     print(b.bin)
     return b
 
 def IPi(a):
     b = BitArray(8)
+    IPi_pos = (4, 1, 3, 5, 7, 2, 8, 6)
 
-    b.set(a[3], 0)
-    b.set(a[0], 1)
-    b.set(a[2], 2)
-    b.set(a[4], 3)
-    b.set(a[6], 4)
-    b.set(a[1], 5)
-    b.set(a[7], 6)
-    b.set(a[5], 7)
+    i = 0
+    for pos in IPi_pos:
+        b.set(a[pos - 1], i)
+        i += 1
 
     print(b.bin)
     return b
 
-a = BitArray('0b10101010')
+a = BitArray('0b11110000')
 IPi(IP(a))
