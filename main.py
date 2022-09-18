@@ -62,3 +62,83 @@ def PC2(cd):
 
 C.append(D)
 print(PC2(C).bin)
+print()
+
+
+
+
+
+left_shifts_table = (1, 2, 2, 2)
+
+def left_shift(a, num):
+    a.rol(num)
+
+x = C.copy()
+for i in left_shifts_table:
+    left_shift(x, i)
+    print(x.bin)
+
+print()
+
+
+
+
+
+
+
+def E(a):
+    b = BitArray(8)
+    E_pos = (4, 1, 2, 3, 2, 3, 4, 1)
+
+    i = 0
+    for pos in E_pos:
+        b.set(a[pos - 1], i)
+        i += 1
+
+    return b
+
+R = BitArray('0b1100')
+print(E(R).bin)
+print()
+
+
+def S1(a):
+    S1_box = (
+        (1, 0, 3, 2),
+        (3, 2, 1, 0),
+        (0, 2, 1, 3),
+        (3, 1, 3, 2)
+    )
+
+    row = BitArray(2)
+    column = BitArray(2)
+
+    row.set(a[0], 0)
+    row.set(a[3], 1)
+    column.set(a[1], 0)
+    column.set(a[2], 1)
+
+    return S1_box[row.uint][column.uint]
+
+def S2(a):
+    S2_box = (
+        (0, 1, 2, 3),
+        (2, 0, 1, 3),
+        (3, 0, 1, 0),
+        (2, 1, 0, 3)
+    )
+
+    row = BitArray(2)
+    column = BitArray(2)
+
+    row.set(a[0], 0)
+    row.set(a[3], 1)
+    column.set(a[1], 0)
+    column.set(a[2], 1)
+
+    return S2_box[row.uint][column.uint]
+
+xyz = BitArray('0b0110')
+print(S1(xyz))
+print(S2(xyz))
+print()
