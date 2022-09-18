@@ -9,7 +9,6 @@ def IP(a):
         b.set(a[pos - 1], i)
         i += 1
 
-    print(b.bin)
     return b
 
 def IPi(a):
@@ -21,8 +20,45 @@ def IPi(a):
         b.set(a[pos - 1], i)
         i += 1
 
-    print(b.bin)
     return b
 
 a = BitArray('0b11110000')
-IPi(IP(a))
+print(IP(a).bin)
+print(IPi(IP(a)).bin)
+print()
+
+
+
+
+
+def PC1(k):
+    C = BitArray(5)
+    D = BitArray(5)
+    PC1_C = (3, 5, 2, 7, 4)
+    PC1_D = (10, 1, 9, 8, 6)
+
+    i = 0
+    for c, d in zip(PC1_C, PC1_D):
+        C.set(k[c - 1], i)
+        D.set(k[d - 1], i)
+        i += 1
+
+    return (C, D)
+
+k = BitArray('0b1111100000')
+C, D = PC1(k)
+print(C.bin, D.bin)
+
+def PC2(cd):
+    K = BitArray(8)
+    PC2_pos = (6, 3, 7, 4, 8, 5, 10, 9)
+
+    i = 0
+    for pos in PC2_pos:
+        K.set(cd[pos - 1], i)
+        i += 1
+
+    return K
+
+C.append(D)
+print(PC2(C).bin)
