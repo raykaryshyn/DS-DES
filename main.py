@@ -348,21 +348,47 @@ print(PermOpDKAT())
 print(SubTableDKAT())
 '''
 
-plaintext = BitArray(uint=0x42, length=8).bin
-ciphertext = BitArray(uint=0x52, length=8).bin
+plaintext = [BitArray(uint=0x42, length=8).bin, BitArray(uint=0x72, length=8).bin, BitArray(
+    uint=0x75, length=8).bin, BitArray(uint=0x74, length=8).bin, BitArray(uint=0x65, length=8).bin]
+ciphertext = [BitArray(uint=0x52, length=8).bin, BitArray(uint=0xf0, length=8).bin, BitArray(
+    uint=0xbe, length=8).bin, BitArray(uint=0x69, length=8).bin, BitArray(uint=0x8a, length=8).bin]
 ciphertexts = []
 plaintexts = []
+found_keys = []
 
-for i in range(0b100000000000000000000):
-    key = BitArray(uint=i, length=20)
-    myDSDES = DSDES(key[:10].bin, key[10:].bin)
-    ciphertexts.append(myDSDES.encrypt(plaintext, 'b').bin)
+for i in range(0b10000000000):
+    key = BitArray(uint=i, length=10)
+    mySDES = SDES(key.bin)
+    ans = []
+    for j in plaintext:
+        ans.append(mySDES.encrypt(j, 'b').bin)
+    ciphertexts.append((key.bin, ''.join(ans)))
 
-for i in range(0b100000000000000000000):
-    key = BitArray(uint=i, length=20)
-    myDSDES = DSDES(key[:10].bin, key[10:].bin)
-    plaintexts.append(myDSDES.decrypt(ciphertext, 'b').bin)
+for i in range(0b10000000000):
+    key = BitArray(uint=i, length=10)
+    mySDES = SDES(key.bin)
+    ans = []
+    for j in ciphertext:
+        ans.append(mySDES.decrypt(j, 'b').bin)
+    for x in ciphertexts:
+        if (x[1] == ''.join(ans)):
+            found_keys.append(x[0])
+            found_keys.append(key.bin)
+            break
+    #plaintexts.append((key.bin, ''.join(ans)))
 
-for i in range(0b100000000000000000000):
-    if ciphertexts[i] == plaintexts[i]:
-        print(i, ciphertexts[i], plaintexts[i])
+'''
+for i in ciphertexts:
+    for j in plaintexts:
+        if (i[1] == j[1]):
+            print(i, j)
+'''
+
+print(found_keys)
+myDSDES = DSDES(found_keys[0], found_keys[1])
+test = []
+for x in plaintext:
+    test.append(myDSDES.encrypt(x, 'b').bin)
+
+print(test)
+print(ciphertext)
