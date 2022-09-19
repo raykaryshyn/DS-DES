@@ -148,13 +148,26 @@ class SDES:
 
         return self.IPi(L)
 
-    def decrypt(self, cipher):
-        pass
+    def decrypt(self, cipher, type):
+        if (type == 'b'):
+            cipher = BitArray('0b' + cipher)
+
+        perm = self.IP(cipher)
+        L, R = self.splitPerm(perm)
+
+        for round in range(3, -1, -1):
+            L, R = R, L ^ self.F(R, round)
+
+        L, R = R, L
+        L.append(R)
+
+        return self.IPi(L)
 
 
 mySDES = SDES('0000000000')
 message = '10000000'
 encrypted = mySDES.encrypt(message, 'b')
-decrypted = mySDES.decrypt(message)
+decrypted = mySDES.decrypt(encrypted.bin, 'b')
 
-print(encrypted.bin)
+print("Cipher:", encrypted.bin)
+print("Plain: ",decrypted.bin)
