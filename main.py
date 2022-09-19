@@ -164,6 +164,24 @@ class SDES:
         return self.IPi(L)
 
 
+class DSDES:
+    def __init__(self, k1, k2):
+        self.sdes1 = SDES(k1)
+        self.sdes2 = SDES(k2)
+
+    def encrypt(self, msg, type):
+        if type == 'b':
+            pass
+
+        return self.sdes2.encrypt(self.sdes1.encrypt(msg, 'b').bin, 'b')
+
+    def decrypt(self, cipher, type):
+        if type == 'b':
+            pass
+
+        return self.sdes1.decrypt(self.sdes2.decrypt(cipher, 'b').bin, 'b')
+
+
 '''
 mySDES = SDES('0000000000')
 message = '10000000'
@@ -173,6 +191,14 @@ decrypted = mySDES.decrypt(encrypted.bin, 'b')
 print("Cipher:", encrypted.bin)
 print("Plain: ",decrypted.bin)
 '''
+
+myDSDES = DSDES('0000000000', '1111111111')
+message = '10101010'
+encrypted = myDSDES.encrypt(message, 'b')
+decrypted = myDSDES.decrypt(encrypted.bin, 'b')
+
+print("Cipher:", encrypted.bin)
+print("Plain: ", decrypted.bin)
 
 
 def VarPlainEKAT():
