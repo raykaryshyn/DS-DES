@@ -192,6 +192,7 @@ print("Cipher:", encrypted.bin)
 print("Plain: ",decrypted.bin)
 '''
 
+'''
 myDSDES = DSDES('0000000000', '1111111111')
 message = '10101010'
 encrypted = myDSDES.encrypt(message, 'b')
@@ -199,6 +200,7 @@ decrypted = myDSDES.decrypt(encrypted.bin, 'b')
 
 print("Cipher:", encrypted.bin)
 print("Plain: ", decrypted.bin)
+'''
 
 
 def VarPlainEKAT():
@@ -331,6 +333,7 @@ def SubTableDKAT():
     return table
 
 
+'''
 print(VarPlainEKAT())
 print(InvPermEKAT(VarPlainEKAT()))
 print(VarKeyEKAT())
@@ -343,3 +346,23 @@ print(InvPermDKAT(VarCipherDKAT()))
 print(VarKeyDKAT())
 print(PermOpDKAT())
 print(SubTableDKAT())
+'''
+
+plaintext = BitArray(uint=0x42, length=8).bin
+ciphertext = BitArray(uint=0x52, length=8).bin
+ciphertexts = []
+plaintexts = []
+
+for i in range(0b100000000000000000000):
+    key = BitArray(uint=i, length=20)
+    myDSDES = DSDES(key[:10].bin, key[10:].bin)
+    ciphertexts.append(myDSDES.encrypt(plaintext, 'b').bin)
+
+for i in range(0b100000000000000000000):
+    key = BitArray(uint=i, length=20)
+    myDSDES = DSDES(key[:10].bin, key[10:].bin)
+    plaintexts.append(myDSDES.decrypt(ciphertext, 'b').bin)
+
+for i in range(0b100000000000000000000):
+    if ciphertexts[i] == plaintexts[i]:
+        print(i, ciphertexts[i], plaintexts[i])
