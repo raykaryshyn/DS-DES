@@ -174,7 +174,7 @@ print("Cipher:", encrypted.bin)
 print("Plain: ",decrypted.bin)
 '''
 
-def VarPlaintextKAT():
+def VarPlainEKAT():
     key = '0000000000'
     sdes = SDES(key)
     p = BitArray(bin='10000000')
@@ -186,7 +186,20 @@ def VarPlaintextKAT():
 
     return table
 
-def InvPermKAT(tableIn):
+def VarCipherDKAT():
+    key = '0000000000'
+    sdes = SDES(key)
+    p = BitArray(bin='10000000')
+    table = []
+
+    for _ in range(8):
+        encrypted_p = sdes.encrypt(str(p.bin), 'b').bin
+        table.append([p.bin, sdes.decrypt(encrypted_p, 'b').bin])
+        p.ror(1)
+
+    return table
+
+def InvPermEKAT(tableIn):
     key = '0000000000'
     sdes = SDES(key)
     tableOut = []
@@ -196,7 +209,7 @@ def InvPermKAT(tableIn):
 
     return tableOut
 
-def VarKeyKAT():
+def VarKeyEKAT():
     key = BitArray(bin='1000000000')
     sdes = SDES(str(key.bin))
     p = '00000000'
@@ -209,7 +222,7 @@ def VarKeyKAT():
 
     return table
 
-def PermOpKAT():
+def PermOpEKAT():
     keys = ['0000000011', '0011001010', '0001011001', '1011001111']
     p = '00000000'
     table = []
@@ -220,7 +233,7 @@ def PermOpKAT():
 
     return table
 
-def SubTableKAT():
+def SubTableEKAT():
     keys = ['0001101101', '0001101110', '0001110000', '0001110001', '0001110110', '0001111000', '0001111001']
     p = '00000000'
     table = []
@@ -231,8 +244,11 @@ def SubTableKAT():
 
     return table
 
-print(VarPlaintextKAT())
-print(InvPermKAT(VarPlaintextKAT()))
-print(VarKeyKAT())
-print(PermOpKAT())
-print(SubTableKAT())
+print(VarPlainEKAT())
+print(InvPermEKAT(VarPlainEKAT()))
+print(VarKeyEKAT())
+print(PermOpEKAT())
+print(SubTableEKAT())
+print()
+
+print(VarCipherDKAT())
