@@ -1,4 +1,3 @@
-from pydoc import plain
 from bitstring import BitArray
 
 
