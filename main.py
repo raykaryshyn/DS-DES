@@ -390,6 +390,7 @@ print(ciphertext)
 '''
 
 
+'''
 ans = []
 for j in ciphertext:
     ans.append(j)
@@ -403,3 +404,33 @@ for i in range(0b100000000000000000000):
     if ''.join(test) == cipher:
         print(key[:10].bin, key[10:].bin)
         break
+'''
+# Found keys: K1=1100111111 K2=0101010011
+
+
+# CBC
+# IV = 0x9c
+# Cipher = 0x586519b031aaee9a235247601fb37baefbcd54d8c3763f8523d2a1315ed8bdcc
+myDSDES = DSDES("1100111111", "0101010011")
+
+'''
+print(chr(int(myDSDES.decrypt(BitArray(uint=0x52, length=8).bin, 'b').hex, base=16)))
+print(chr(int(myDSDES.decrypt(BitArray(uint=0xf0, length=8).bin, 'b').hex, base=16)))
+print(chr(int(myDSDES.decrypt(BitArray(uint=0xbe, length=8).bin, 'b').hex, base=16)))
+print(chr(int(myDSDES.decrypt(BitArray(uint=0x69, length=8).bin, 'b').hex, base=16)))
+print(chr(int(myDSDES.decrypt(BitArray(uint=0x8a, length=8).bin, 'b').hex, base=16)))
+'''
+
+iv = BitArray(uint=0x9c, length=8)
+prev = iv
+
+cipher = [0x58, 0x65, 0x19, 0xb0, 0x31, 0xaa, 0xee, 0x9a, 0x23, 0x52, 0x47, 0x60, 0x1f, 0xb3, 0x7b, 0xae, 0xfb, 0xcd, 0x54, 0xd8, 0xc3, 0x76, 0x3f, 0x85, 0x23, 0xd2, 0xa1, 0x31, 0x5e, 0xd8, 0xbd, 0xcc]
+plain = ""
+
+for c in cipher:
+    d = BitArray(uint=c, length=8)
+    x = myDSDES.decrypt(d.bin, 'b')
+    plain += chr(int((prev ^ x).hex, base=16))
+    prev = d
+
+print(plain)
