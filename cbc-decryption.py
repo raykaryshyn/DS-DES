@@ -1,0 +1,23 @@
+from bitstring import BitArray
+from sdes import DSDES
+
+
+# Found keys: K1=1100111111 K2=0101010011
+# IV = 0x9c
+# Cipher = 0x586519b031aaee9a235247601fb37baefbcd54d8c3763f8523d2a1315ed8bdcc
+myDSDES = DSDES("1100111111", "0101010011")
+
+iv = BitArray(uint=0x9c, length=8)
+prev = iv
+
+cipher = [0x58, 0x65, 0x19, 0xb0, 0x31, 0xaa, 0xee, 0x9a, 0x23, 0x52, 0x47, 0x60, 0x1f, 0xb3, 0x7b,
+          0xae, 0xfb, 0xcd, 0x54, 0xd8, 0xc3, 0x76, 0x3f, 0x85, 0x23, 0xd2, 0xa1, 0x31, 0x5e, 0xd8, 0xbd, 0xcc]
+plain = ""
+
+for c in cipher:
+    d = BitArray(uint=c, length=8)
+    x = myDSDES.decrypt(d.bin, 'b')
+    plain += chr(int((prev ^ x).hex, base=16))
+    prev = d
+
+print(plain)
