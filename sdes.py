@@ -40,8 +40,18 @@ class SDES:
             CD.append(D)
             self.round_keys.append(self._pc2(CD))
 
-    def _permute(self, input, pos_list, length):
-        out = BitArray(length)
+    def _permute(self, input, pos_list):
+        """A utility method to permute an input based on a position list.
+
+        Keyword arguments:
+        input -- The BitArray to be permuted.
+        pos_list -- A list of positions that is the same length as the permuted BitArray
+            and indicies of the permuted order.
+
+        Returns:
+        A BitArray of the permuted input.
+        """
+        out = BitArray(len(pos_list))
 
         i = 0
         for pos in pos_list:
@@ -53,30 +63,30 @@ class SDES:
     def _pc1(self, k):
         PC1_C = (3, 5, 2, 7, 4)
         PC1_D = (10, 1, 9, 8, 6)
-        return self._permute(k, PC1_C, 5), self._permute(k, PC1_D, 5)
+        return self._permute(k, PC1_C), self._permute(k, PC1_D)
 
     def _pc2(self, cd):
         PC2_pos = (6, 3, 7, 4, 8, 5, 10, 9)
-        return self._permute(cd, PC2_pos, 8)
+        return self._permute(cd, PC2_pos)
 
     def _ip(self, input):
         IP_pos = (2, 6, 3, 1, 4, 8, 5, 7)
-        return self._permute(input, IP_pos, 8)
+        return self._permute(input, IP_pos)
 
     def _ipi(self, a):
         IPi_pos = (4, 1, 3, 5, 7, 2, 8, 6)
-        return self._permute(a, IPi_pos, 8)
+        return self._permute(a, IPi_pos)
 
     def _split_perm(self, perm):
         return (perm[:4], perm[4:])
 
     def _e(self, a):
         E_pos = (4, 1, 2, 3, 2, 3, 4, 1)
-        return self._permute(a, E_pos, 8)
+        return self._permute(a, E_pos)
 
     def _p(self, a):
         P_pos = (2, 4, 3, 1)
-        return self._permute(a, P_pos, 4)
+        return self._permute(a, P_pos)
 
     def _s1(self, a):
         S1_box = (
@@ -167,11 +177,15 @@ class DSDES:
 
     def __init__(self, key, type=None):
         """Sets up two instances of SDES with a specified 20-bit hexadecimal or binary key.
-        See SDES documentation for key and type restrictions.
+        The most significant 10 bits are used for the first SDES and
+        the least significant 10 bits for the second SDES.
 
         Keyword arguments:
-        key -- Key.
-        type -- Key type (not required, default same as SDES).
+        key --  A string representing the key to be used for encryption/decryption.
+            Not required to include the base prefix ('0x' or '0b').
+            Binary keys must explicitly define 20 bits.
+        type -- The base of the provided key: 
+            hexadecimal (default, no arg required) or binary ('b').
         """
         if type == 'b':
             key = BitArray(bin=key)
