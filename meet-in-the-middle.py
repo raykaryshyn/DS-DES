@@ -12,7 +12,7 @@ found_keys = []
 
 for i in range(0b10000000000):
     key = BitArray(uint=i, length=10)
-    mySDES = SDES(key.bin)
+    mySDES = SDES(key.bin, 'b')
     ans = []
     for j in plaintext:
         ans.append(mySDES.encrypt(j, 'b').bin)
@@ -20,7 +20,7 @@ for i in range(0b10000000000):
 
 for i in range(0b10000000000):
     key = BitArray(uint=i, length=10)
-    mySDES = SDES(key.bin)
+    mySDES = SDES(key.bin, 'b')
     ans = []
     for j in ciphertext:
         ans.append(mySDES.decrypt(j, 'b').bin)
@@ -31,7 +31,7 @@ for i in range(0b10000000000):
             break
 
 print(found_keys)
-myDSDES = DSDES(found_keys[0], found_keys[1])
+myDSDES = DSDES(found_keys[0], found_keys[1], 'b')
 test = []
 for x in plaintext:
     test.append(myDSDES.encrypt(x, 'b').bin)

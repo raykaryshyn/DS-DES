@@ -2,8 +2,11 @@ from bitstring import BitArray
 
 
 class SDES:
-    def __init__(self, key):
-        self.key = BitArray('0b' + key)
+    def __init__(self, key, type=None):
+        if type == 'b':
+            self.key = BitArray(bin=key)
+        else:
+            self.key = BitArray(bin=(bin(int(key, 16))[2:]).zfill(10))
         self.genRoundKeys()
 
     def genRoundKeys(self):
@@ -133,9 +136,24 @@ class SDES:
 
         return self.P(B1)
 
-    def encrypt(self, msg, type):
-        if (type == 'b'):
-            msg = BitArray('0b' + msg)
+    def handleInput(self, msg, type=None):
+        if type == 'b':
+            msg = BitArray(bin=msg)
+        else:
+            msg = BitArray(hex=msg)
+
+        #out = []
+        #i = 0
+        # while i < msg.len:
+        #    out.append(msg[i:i+8])
+        #    i += 8
+
+        # return out
+
+        return msg
+
+    def encrypt(self, msg, type=None):
+        msg = self.handleInput(msg, type)
 
         perm = self.IP(msg)
         L, R = self.splitPerm(perm)
@@ -148,9 +166,8 @@ class SDES:
 
         return self.IPi(L)
 
-    def decrypt(self, cipher, type):
-        if (type == 'b'):
-            cipher = BitArray('0b' + cipher)
+    def decrypt(self, cipher, type=None):
+        cipher = self.handleInput(cipher, type)
 
         perm = self.IP(cipher)
         L, R = self.splitPerm(perm)
@@ -165,18 +182,12 @@ class SDES:
 
 
 class DSDES:
-    def __init__(self, k1, k2):
-        self.sdes1 = SDES(k1)
-        self.sdes2 = SDES(k2)
+    def __init__(self, k1, k2, type=None):
+        self.sdes1 = SDES(k1, type)
+        self.sdes2 = SDES(k2, type)
 
-    def encrypt(self, msg, type):
-        if type == 'b':
-            pass
+    def encrypt(self, msg, type=None):
+        return self.sdes2.encrypt(self.sdes1.encrypt(msg, type).bin, type)
 
-        return self.sdes2.encrypt(self.sdes1.encrypt(msg, 'b').bin, 'b')
-
-    def decrypt(self, cipher, type):
-        if type == 'b':
-            pass
-
-        return self.sdes1.decrypt(self.sdes2.decrypt(cipher, 'b').bin, 'b')
+    def decrypt(self, cipher, type=None):
+        return self.sdes1.decrypt(self.sdes2.decrypt(cipher, type).bin, type)
