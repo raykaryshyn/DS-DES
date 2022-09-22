@@ -7,82 +7,59 @@ class SDES:
             self.key = BitArray(bin=key)
         else:
             self.key = BitArray(bin=(bin(int(key, 16))[2:]).zfill(10))
-        self.genRoundKeys()
+        self._genRoundKeys()  # Populates self.round_keys
 
-    def genRoundKeys(self):
-        C, D = self.PC1(self.key)
-        left_shifts_table = (1, 2, 2, 2)
+    def _genRoundKeys(self):
+        C, D = self._pc1(self.key)
+        left_shifts = (1, 2, 2, 2)
         self.round_keys = []
 
         for round in range(4):
-            C.rol(left_shifts_table[round])
-            D.rol(left_shifts_table[round])
+            C.rol(left_shifts[round])
+            D.rol(left_shifts[round])
             CD = C.copy()
             CD.append(D)
-            self.round_keys.append(self.PC2(CD))
+            self.round_keys.append(self._pc2(CD))
 
-    def PC1(self, k):
-        C = BitArray(5)
-        D = BitArray(5)
+    def _permute(self, input, pos_list, length):
+        out = BitArray(length)
+
+        i = 0
+        for pos in pos_list:
+            out.set(input[pos - 1], i)
+            i += 1
+
+        return out
+
+    def _pc1(self, k):
         PC1_C = (3, 5, 2, 7, 4)
         PC1_D = (10, 1, 9, 8, 6)
+        return self._permute(k, PC1_C, 5), self._permute(k, PC1_D, 5)
 
-        i = 0
-        for c, d in zip(PC1_C, PC1_D):
-            C.set(k[c - 1], i)
-            D.set(k[d - 1], i)
-            i += 1
-
-        return (C, D)
-
-    def PC2(self, cd):
-        K = BitArray(8)
+    def _pc2(self, cd):
         PC2_pos = (6, 3, 7, 4, 8, 5, 10, 9)
+        return self._permute(cd, PC2_pos, 8)
 
-        i = 0
-        for pos in PC2_pos:
-            K.set(cd[pos - 1], i)
-            i += 1
-
-        return K
-
-    def IP(self, a):
-        b = BitArray(8)
+    def _ip(self, input):
         IP_pos = (2, 6, 3, 1, 4, 8, 5, 7)
+        return self._permute(input, IP_pos, 8)
 
-        i = 0
-        for pos in IP_pos:
-            b.set(a[pos - 1], i)
-            i += 1
-
-        return b
-
-    def IPi(self, a):
-        b = BitArray(8)
+    def _ipi(self, a):
         IPi_pos = (4, 1, 3, 5, 7, 2, 8, 6)
+        return self._permute(a, IPi_pos, 8)
 
-        i = 0
-        for pos in IPi_pos:
-            b.set(a[pos - 1], i)
-            i += 1
-
-        return b
-
-    def splitPerm(self, perm):
+    def _split_perm(self, perm):
         return (perm[:4], perm[4:])
 
-    def E(self, a):
-        b = BitArray(8)
+    def _e(self, a):
         E_pos = (4, 1, 2, 3, 2, 3, 4, 1)
+        return self._permute(a, E_pos, 8)
 
-        i = 0
-        for pos in E_pos:
-            b.set(a[pos - 1], i)
-            i += 1
+    def _p(self, a):
+        P_pos = (2, 4, 3, 1)
+        return self._permute(a, P_pos, 4)
 
-        return b
-
-    def S1(self, a):
+    def _s1(self, a):
         S1_box = (
             (1, 0, 3, 2),
             (3, 2, 1, 0),
@@ -100,7 +77,7 @@ class SDES:
 
         return BitArray(uint=S1_box[row.uint][column.uint], length=2)
 
-    def S2(self, a):
+    def _s2(self, a):
         S2_box = (
             (0, 1, 2, 3),
             (2, 0, 1, 3),
@@ -118,67 +95,48 @@ class SDES:
 
         return BitArray(uint=S2_box[row.uint][column.uint], length=2)
 
-    def P(self, a):
-        b = BitArray(4)
-        IP_pos = (2, 4, 3, 1)
-
-        i = 0
-        for pos in IP_pos:
-            b.set(a[pos - 1], i)
-            i += 1
-
-        return b
-
-    def F(self, R, round):
-        B = self.round_keys[round] ^ self.E(R)
-        B1, B2 = self.S1(B[:4]), self.S2(B[4:])
+    def _f(self, R, round):
+        B = self.round_keys[round] ^ self._e(R)
+        B1, B2 = self._s1(B[:4]), self._s2(B[4:])
         B1.append(B2)
 
-        return self.P(B1)
+        return self._p(B1)
 
-    def handleInput(self, msg, type=None):
+    def _handleInput(self, msg, type=None):
         if type == 'b':
             msg = BitArray(bin=msg)
         else:
             msg = BitArray(hex=msg)
 
-        #out = []
-        #i = 0
-        # while i < msg.len:
-        #    out.append(msg[i:i+8])
-        #    i += 8
-
-        # return out
-
         return msg
 
     def encrypt(self, msg, type=None):
-        msg = self.handleInput(msg, type)
+        msg = self._handleInput(msg, type)
 
-        perm = self.IP(msg)
-        L, R = self.splitPerm(perm)
+        perm = self._ip(msg)
+        L, R = self._split_perm(perm)
 
         for round in range(4):
-            L, R = R, L ^ self.F(R, round)
+            L, R = R, L ^ self._f(R, round)
 
         L, R = R, L
         L.append(R)
 
-        return self.IPi(L)
+        return self._ipi(L)
 
     def decrypt(self, cipher, type=None):
-        cipher = self.handleInput(cipher, type)
+        cipher = self._handleInput(cipher, type)
 
-        perm = self.IP(cipher)
-        L, R = self.splitPerm(perm)
+        perm = self._ip(cipher)
+        L, R = self._split_perm(perm)
 
         for round in range(3, -1, -1):
-            L, R = R, L ^ self.F(R, round)
+            L, R = R, L ^ self._f(R, round)
 
         L, R = R, L
         L.append(R)
 
-        return self.IPi(L)
+        return self._ipi(L)
 
 
 class DSDES:
