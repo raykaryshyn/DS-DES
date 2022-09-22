@@ -2,12 +2,31 @@ from bitstring import BitArray
 
 
 class SDES:
+    """A class to represent the simple-DES (S-DES) algorithm.
+    Uses a specified 10-bit key to encrypt any 8-bit block.
+    Accepts hexidecimal and binary string formats for both the key and block.
+    Internally uses the bitstring package and its BitArray class for easier bit manipulation.
+    Any returns after encryption/decryption are instances of BitArray.
+    """
+
     def __init__(self, key, type=None):
+        """Sets up an instance of SDES with a specified 10-bit hexadecimal or binary key.
+
+        Keyword arguments:
+        key -- A string representing the key to be used for encryption/decryption.
+            Not required to include the base prefix ('0x' or '0b').
+            Binary keys must explicitly define 10 bits.
+        type -- The base of the provided key: 
+            hexadecimal (default, no arg required) or binary ('b').
+        """
         if type == 'b':
             self.key = BitArray(bin=key)
         else:
+            # First converts hex string representation to binary
+            # and pads the MSBs with 0s for the whole being 10 bits long.
             self.key = BitArray(bin=(bin(int(key, 16))[2:]).zfill(10))
-        self._genRoundKeys()  # Populates self.round_keys
+        # Populates the list self.round_keys.
+        self._genRoundKeys()
 
     def _genRoundKeys(self):
         C, D = self._pc1(self.key)
@@ -140,9 +159,29 @@ class SDES:
 
 
 class DSDES:
-    def __init__(self, k1, k2, type=None):
-        self.sdes1 = SDES(k1, type)
-        self.sdes2 = SDES(k2, type)
+    """A class to represent the double S-DES (DS-DES) algorithm.
+    Uses a specified 20-bit key to encrypt any 8-bit block.
+    Accepts hexidecimal and binary string formats for both the key and block.
+    Any returns after encryption/decryption are instances of bitstring.BitArray.
+    """
+
+    def __init__(self, key, type=None):
+        """Sets up two instances of SDES with a specified 20-bit hexadecimal or binary key.
+        See SDES documentation for key and type restrictions.
+
+        Keyword arguments:
+        key -- Key.
+        type -- Key type (not required, default same as SDES).
+        """
+        if type == 'b':
+            key = BitArray(bin=key)
+        else:
+            # First converts hex string representation to binary
+            # and pads the MSBs with 0s for the whole being 20 bits long.
+            key = BitArray(bin=(bin(int(key, 16))[2:]).zfill(20))
+
+        self.sdes1 = SDES(key[:10].bin, 'b')
+        self.sdes2 = SDES(key[10:].bin, 'b')
 
     def encrypt(self, msg, type=None):
         return self.sdes2.encrypt(self.sdes1.encrypt(msg, type).bin, type)

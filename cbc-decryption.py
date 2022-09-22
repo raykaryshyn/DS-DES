@@ -2,10 +2,10 @@ from bitstring import BitArray
 from sdes import DSDES
 
 
-# Found keys: K1=1100111111 K2=0101010011
+# Found keys: K1=1100111111 K2=0101010011 or key=0xCFD53
 # IV = 0x9c
 # Cipher = 0x586519b031aaee9a235247601fb37baefbcd54d8c3763f8523d2a1315ed8bdcc
-myDSDES = DSDES("1100111111", "0101010011")
+myDSDES = DSDES("0xCFD53")
 
 iv = BitArray(uint=0x9c, length=8)
 prev = iv

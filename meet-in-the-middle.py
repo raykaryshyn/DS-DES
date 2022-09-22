@@ -31,7 +31,7 @@ for i in range(0b10000000000):
             break
 
 print(found_keys)
-myDSDES = DSDES(found_keys[0], found_keys[1], 'b')
+myDSDES = DSDES(''.join(found_keys), 'b')
 test = []
 for x in plaintext:
     test.append(myDSDES.encrypt(x, 'b').bin)

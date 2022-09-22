@@ -15,7 +15,7 @@ for j in ciphertext:
 cipher = ''.join(ans)
 for i in range(0b100000000000000000000):
     key = BitArray(uint=i, length=20)
-    myDSDES = DSDES(key[:10].bin, key[10:].bin, 'b')
+    myDSDES = DSDES(key.bin, 'b')
     test = []
     for j in plaintext:
         test.append(myDSDES.encrypt(j, 'b').bin)
