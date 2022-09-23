@@ -80,7 +80,6 @@ class SDES:
         Returns:
         The 5-bit long BitArray variables C and D.
         """
-
         PC1_C = (3, 5, 2, 7, 4)
         PC1_D = (10, 1, 9, 8, 6)
         return self._permute(k, PC1_C), self._permute(k, PC1_D)
@@ -95,7 +94,6 @@ class SDES:
         Returns:
         The 8-bit final key for a specific round (BitArray).
         """
-
         PC2_pos = (6, 3, 7, 4, 8, 5, 10, 9)
         return self._permute(cd, PC2_pos)
 
