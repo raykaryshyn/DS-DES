@@ -219,42 +219,72 @@ class SDES:
         B1, B2 = self._s1(B[:4]), self._s2(B[4:])
         return self._p(B1 + B2)
 
-    def _handleInput(self, msg, type=None):
+    def _handleInput(self, input, type=None):
         """Handles an input message by formatting a binary or hexadecimal
         string representation into a BitArray.
+
+        Keyword arguments:
+        input -- A string representation of one of the supported types.
+        type -- Supported types are 'h' (hexadecimal, DEFAULT) and 'b' (binary).
+
+        Returns:
+        The resulting BitArray variable from the input.
+        """
+        if type == 'b':
+            return BitArray(bin=input)
+        else:
+            return BitArray(hex=input)
+
+    def encrypt(self, plain, type=None):
+        """The Encrypt Function transforms a plaintext input string into BitArray ciphertext.
+
+        Keyword arguments:
+        plain -- A string representation of one of the supported types.
+        type -- Supported types are 'h' (hexadecimal, DEFAULT) and 'b' (binary).
+
+        Returns:
+        The encrypted BitArray ciphertext from the input plaintext.
+        """
+        plain = self._handleInput(plain, type)
+
+        # Permutes the plaintext and splits the result into L and R (each 4 bits).
+        perm = self._ip(plain)
+        L, R = perm[:4], perm[4:]
+
+        # Uses four rounds of transformations and substitutions.
+        for round in range(4):
+            # A condensed version of the following formula:
+            #   L = R
+            #   R = L XOR F(R, K)
+            L, R = R, L ^ self._f(R, round)
+
+        # A final permutation of LR swapped (RL) before returning the ciphertext.
+        return self._ipi(R + L)
+
+    def decrypt(self, cipher, type=None):
+        """The Decrypt Function transforms a BitArray ciphertext into BitArray plaintext.
 
         Keyword arguments:
         msg -- A string representation of one of the supported types.
         type -- Supported types are 'h' (hexadecimal, DEFAULT) and 'b' (binary).
 
         Returns:
-        The resulting BitArray variable from the input message.
+        The decrypted BitArray plaintext from the input ciphertext.
         """
-        if type == 'b':
-            return BitArray(bin=msg)
-        else:
-            return BitArray(hex=msg)
-
-    def encrypt(self, msg, type=None):
-        msg = self._handleInput(msg, type)
-
-        perm = self._ip(msg)
-        L, R = perm[:4], perm[4:]
-
-        for round in range(4):
-            L, R = R, L ^ self._f(R, round)
-
-        return self._ipi(R + L)
-
-    def decrypt(self, cipher, type=None):
         cipher = self._handleInput(cipher, type)
 
+        # Permutes the plaintext and splits the result into L and R (each 4 bits).
         perm = self._ip(cipher)
         L, R = perm[:4], perm[4:]
 
+        # Uses four rounds of transformations and substitutions in the reverse order as encrypt().
         for round in range(3, -1, -1):
+            # A condensed version of the following formula:
+            #   L = R
+            #   R = L XOR F(R, K)
             L, R = R, L ^ self._f(R, round)
 
+        # A final permutation of LR swapped (RL) before returning the plaintext.
         return self._ipi(R + L)
 
 
@@ -287,8 +317,28 @@ class DSDES:
         self.sdes1 = SDES(key[:10].bin, 'b')
         self.sdes2 = SDES(key[10:].bin, 'b')
 
-    def encrypt(self, msg, type=None):
-        return self.sdes2.encrypt(self.sdes1.encrypt(msg, type).bin, type)
+    def encrypt(self, plain, type=None):
+        """The Encrypt Function uses the first SDES instance before encrypting for a second time
+        with the second SDES instance.
+
+        Keyword arguments:
+        plain -- A string representation of one of the supported types.
+        type -- Supported types are 'h' (hexadecimal, DEFAULT) and 'b' (binary).
+
+        Returns:
+        The doubly encrypted BitArray ciphertext from the input plaintext.
+        """
+        return self.sdes2.encrypt(self.sdes1.encrypt(plain, type).bin, type)
 
     def decrypt(self, cipher, type=None):
+        """The Decrypt Function operates in the reverse order as encrypt(). It uses the second SDES
+        instance before decrypting for a second time with the first SDES instance.
+
+        Keyword arguments:
+        cipher -- A string representation of one of the supported types.
+        type -- Supported types are 'h' (hexadecimal, DEFAULT) and 'b' (binary).
+
+        Returns:
+        The doubly decrypted BitArray plaintext from the input ciphertext.
+        """
         return self.sdes1.decrypt(self.sdes2.decrypt(cipher, type).bin, type)
