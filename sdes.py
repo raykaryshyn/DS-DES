@@ -29,16 +29,24 @@ class SDES:
         self._genRoundKeys()
 
     def _genRoundKeys(self):
+        """Generates the round keys to be used for their respective rounds.
+        Populates the list self.round_keys, each 8 bits long.
+
+        The first element used in self.round_keys is to be used in the first round of
+        encryption/decryption. The second element for the second round. And so on.
+        """
         C, D = self._pc1(self.key)
+        # Represents the left shift table for each of the four rounds.
         left_shifts = (1, 2, 2, 2)
+        # Either initializes or resets self.round_keys.
         self.round_keys = []
 
         for round in range(4):
+            # Applies the left shift(s) to C and D for each current round.
             C.rol(left_shifts[round])
             D.rol(left_shifts[round])
-            CD = C.copy()
-            CD.append(D)
-            self.round_keys.append(self._pc2(CD))
+            # Join and permute (PC2) C and D before adding it to the round key list.
+            self.round_keys.append(self._pc2(C + D))
 
     def _permute(self, input, pos_list):
         """A utility method to permute an input based on a position list.
@@ -46,7 +54,7 @@ class SDES:
         Keyword arguments:
         input -- The BitArray to be permuted.
         pos_list -- A list of positions that is the same length as the permuted BitArray
-            and indicies of the permuted order.
+            with indicies of the permuted order.
 
         Returns:
         A BitArray of the permuted input.
@@ -61,11 +69,33 @@ class SDES:
         return out
 
     def _pc1(self, k):
+        """Permuted Choice 1 is the first permutation to be ran on the provided key before
+        round key generation.
+
+        Splits into two lists, C and D, each 5 bits long.
+
+        Keyword arguments:
+        k -- The original provided key (BitArray).
+
+        Returns:
+        The 5-bit long BitArray variables C and D.
+        """
+
         PC1_C = (3, 5, 2, 7, 4)
         PC1_D = (10, 1, 9, 8, 6)
         return self._permute(k, PC1_C), self._permute(k, PC1_D)
 
     def _pc2(self, cd):
+        """Permuted Choice 2 is the final permutation to be ran on the combination of C and D
+        before resulting in a specific (1...4) round key.
+
+        Keyword arguments:
+        cd -- The combination of the C and D BitArray variables (10 bits long).
+
+        Returns:
+        The 8-bit final key for a specific round (BitArray).
+        """
+
         PC2_pos = (6, 3, 7, 4, 8, 5, 10, 9)
         return self._permute(cd, PC2_pos)
 
@@ -95,15 +125,12 @@ class SDES:
             (0, 2, 1, 3),
             (3, 1, 3, 2)
         )
-
         row = BitArray(2)
         column = BitArray(2)
-
         row.set(a[0], 0)
         row.set(a[3], 1)
         column.set(a[1], 0)
         column.set(a[2], 1)
-
         return BitArray(uint=S1_box[row.uint][column.uint], length=2)
 
     def _s2(self, a):
@@ -113,23 +140,18 @@ class SDES:
             (3, 0, 1, 0),
             (2, 1, 0, 3)
         )
-
         row = BitArray(2)
         column = BitArray(2)
-
         row.set(a[0], 0)
         row.set(a[3], 1)
         column.set(a[1], 0)
         column.set(a[2], 1)
-
         return BitArray(uint=S2_box[row.uint][column.uint], length=2)
 
     def _f(self, R, round):
         B = self.round_keys[round] ^ self._e(R)
         B1, B2 = self._s1(B[:4]), self._s2(B[4:])
-        B1.append(B2)
-
-        return self._p(B1)
+        return self._p(B1 + B2)
 
     def _handleInput(self, msg, type=None):
         if type == 'b':
@@ -148,10 +170,7 @@ class SDES:
         for round in range(4):
             L, R = R, L ^ self._f(R, round)
 
-        L, R = R, L
-        L.append(R)
-
-        return self._ipi(L)
+        return self._ipi(R + L)
 
     def decrypt(self, cipher, type=None):
         cipher = self._handleInput(cipher, type)
@@ -162,10 +181,7 @@ class SDES:
         for round in range(3, -1, -1):
             L, R = R, L ^ self._f(R, round)
 
-        L, R = R, L
-        L.append(R)
-
-        return self._ipi(L)
+        return self._ipi(R + L)
 
 
 class DSDES:
