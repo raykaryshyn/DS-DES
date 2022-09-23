@@ -123,7 +123,7 @@ class SDES:
         return self._permute(preout, IPi_pos)
 
     def _e(self, r):
-        """The expansion function, E, expands a 4-bit input to 8 bits using
+        """The Expansion Function, E, expands a 4-bit input to 8 bits using
         the E bit-selection table.
 
         Keyword arguments:
@@ -136,7 +136,7 @@ class SDES:
         return self._permute(r, E_pos)
 
     def _s(self, input, s_box):
-        """A utility for selection functions uses the outer bits of the 4-bit input to select
+        """A utility for Selection Functions uses the outer bits of the 4-bit input to select
         the row of the S box and the middle two bits to select the column.
 
         Keyword arguments:
@@ -157,11 +157,11 @@ class SDES:
         # The 2-bit binary representation of the selected row/column value in s_box.
         return BitArray(uint=s_box[row.uint][column.uint], length=2)
 
-    def _s1(self, input):
-        """The S1 selection function uses the input to select a value from the S1 S-box.
+    def _s1(self, b):
+        """The S1 Selection Function uses the input to select a value from the S1 S-box.
 
         Keyword arguments:
-        input -- Input to be used for selection (4 bits long, BitArray).
+        b -- Input to be used for selection (4 bits long, BitArray).
 
         Returns:
         The 2-bit representation of the selected value (BitArray).
@@ -172,10 +172,10 @@ class SDES:
             (0, 2, 1, 3),
             (3, 1, 3, 2)
         )
-        return self._s(input, S1_box)
+        return self._s(b, S1_box)
 
-    def _s2(self, input):
-        """The S2 selection function uses the input to select a value from the S1 S-box.
+    def _s2(self, b):
+        """The S2 Selection Function uses the input to select a value from the S1 S-box.
 
         Keyword arguments:
         input -- Input to be used for selection (4 bits long, BitArray).
@@ -189,13 +189,13 @@ class SDES:
             (3, 0, 1, 0),
             (2, 1, 0, 3)
         )
-        return self._s(input, S2_box)
+        return self._s(b, S2_box)
 
     def _p(self, s):
-        """The permute function, P, permutes a 4-bit input using the P bit-selection table.
+        """The Permute Function, P, permutes a 4-bit input using the P bit-selection table.
 
         Keyword arguments:
-        s -- Input to be permuted (4 bits long, BitArray)
+        s -- Input to be permuted (4 bits long, BitArray).
 
         Returns:
         The permuted result (4 bits long, BitArray).
@@ -204,17 +204,36 @@ class SDES:
         return self._permute(s, P_pos)
 
     def _f(self, R, round):
+        """The Cipher Function, F, uses R and the current round key, K, to produce F(R, K).
+
+        Keyword arguments:
+        R -- Input to be used with the round key (4 bits long, BitArray).
+        round -- Current round index (int).
+
+        Returns:
+        Result of the Cipher Function (4 bits long, BitArray).
+        """
+        # XOR of the current round key and the expansion of R.
         B = self.round_keys[round] ^ self._e(R)
+        # Splits B (8 bits) into the first 4 bits (B1) and last 4 bits (B2).
         B1, B2 = self._s1(B[:4]), self._s2(B[4:])
         return self._p(B1 + B2)
 
     def _handleInput(self, msg, type=None):
-        if type == 'b':
-            msg = BitArray(bin=msg)
-        else:
-            msg = BitArray(hex=msg)
+        """Handles an input message by formatting a binary or hexadecimal
+        string representation into a BitArray.
 
-        return msg
+        Keyword arguments:
+        msg -- A string representation of one of the supported types.
+        type -- Supported types are 'h' (hexadecimal, DEFAULT) and 'b' (binary).
+
+        Returns:
+        The resulting BitArray variable from the input message.
+        """
+        if type == 'b':
+            return BitArray(bin=msg)
+        else:
+            return BitArray(hex=msg)
 
     def encrypt(self, msg, type=None):
         msg = self._handleInput(msg, type)
