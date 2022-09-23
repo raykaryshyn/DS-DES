@@ -98,53 +98,110 @@ class SDES:
         return self._permute(cd, PC2_pos)
 
     def _ip(self, input):
+        """The Initial Permutation ran on an 8-bit block of input.
+
+        Keyword arguments:
+        input -- The initial input block (8 bits long, BitArray).
+
+        Returns:
+        The permuted input (8 bits long, BitArray).
+        """
         IP_pos = (2, 6, 3, 1, 4, 8, 5, 7)
         return self._permute(input, IP_pos)
 
-    def _ipi(self, a):
+    def _ipi(self, preout):
+        """The Inverse Initial Permutation ran on the preoutput before resulting in
+        the final output.
+
+        Keyword arguments:
+        preout -- The preoutput (8 bits long, BitArray).
+
+        Returns:
+        The final output (8 bits long, BitArray).
+        """
         IPi_pos = (4, 1, 3, 5, 7, 2, 8, 6)
-        return self._permute(a, IPi_pos)
+        return self._permute(preout, IPi_pos)
 
-    def _split_perm(self, perm):
-        return (perm[:4], perm[4:])
+    def _e(self, r):
+        """The expansion function, E, expands a 4-bit input to 8 bits using
+        the E bit-selection table.
 
-    def _e(self, a):
+        Keyword arguments:
+        r -- Input to be expanded (4 bits long, BitArray).
+
+        Returns:
+        The expanded input (8 bits long, BitArray).
+        """
         E_pos = (4, 1, 2, 3, 2, 3, 4, 1)
-        return self._permute(a, E_pos)
+        return self._permute(r, E_pos)
 
-    def _p(self, a):
-        P_pos = (2, 4, 3, 1)
-        return self._permute(a, P_pos)
+    def _s(self, input, s_box):
+        """A utility for selection functions uses the outer bits of the 4-bit input to select
+        the row of the S box and the middle two bits to select the column.
 
-    def _s1(self, a):
+        Keyword arguments:
+        input -- Input to be used for selection (4 bits long, BitArray).
+        s_box -- 4x4 tuple representing the S box table.
+
+        Returns:
+        The 2-bit representation of the selected value (BitArray).
+        """
+        # Selection of the row using the two outermost bits.
+        row = BitArray(2)
+        row.set(input[0], 0)
+        row.set(input[3], 1)
+        # Selection of the column using the two innermost bits.
+        column = BitArray(2)
+        column.set(input[1], 0)
+        column.set(input[2], 1)
+        # The 2-bit binary representation of the selected row/column value in s_box.
+        return BitArray(uint=s_box[row.uint][column.uint], length=2)
+
+    def _s1(self, input):
+        """The S1 selection function uses the input to select a value from the S1 S-box.
+
+        Keyword arguments:
+        input -- Input to be used for selection (4 bits long, BitArray).
+
+        Returns:
+        The 2-bit representation of the selected value (BitArray).
+        """
         S1_box = (
             (1, 0, 3, 2),
             (3, 2, 1, 0),
             (0, 2, 1, 3),
             (3, 1, 3, 2)
         )
-        row = BitArray(2)
-        column = BitArray(2)
-        row.set(a[0], 0)
-        row.set(a[3], 1)
-        column.set(a[1], 0)
-        column.set(a[2], 1)
-        return BitArray(uint=S1_box[row.uint][column.uint], length=2)
+        return self._s(input, S1_box)
 
-    def _s2(self, a):
+    def _s2(self, input):
+        """The S2 selection function uses the input to select a value from the S1 S-box.
+
+        Keyword arguments:
+        input -- Input to be used for selection (4 bits long, BitArray).
+
+        Returns:
+        The 2-bit representation of the selected value (BitArray).
+        """
         S2_box = (
             (0, 1, 2, 3),
             (2, 0, 1, 3),
             (3, 0, 1, 0),
             (2, 1, 0, 3)
         )
-        row = BitArray(2)
-        column = BitArray(2)
-        row.set(a[0], 0)
-        row.set(a[3], 1)
-        column.set(a[1], 0)
-        column.set(a[2], 1)
-        return BitArray(uint=S2_box[row.uint][column.uint], length=2)
+        return self._s(input, S2_box)
+
+    def _p(self, s):
+        """The permute function, P, permutes a 4-bit input using the P bit-selection table.
+
+        Keyword arguments:
+        s -- Input to be permuted (4 bits long, BitArray)
+
+        Returns:
+        The permuted result (4 bits long, BitArray).
+        """
+        P_pos = (2, 4, 3, 1)
+        return self._permute(s, P_pos)
 
     def _f(self, R, round):
         B = self.round_keys[round] ^ self._e(R)
@@ -163,7 +220,7 @@ class SDES:
         msg = self._handleInput(msg, type)
 
         perm = self._ip(msg)
-        L, R = self._split_perm(perm)
+        L, R = perm[:4], perm[4:]
 
         for round in range(4):
             L, R = R, L ^ self._f(R, round)
@@ -174,7 +231,7 @@ class SDES:
         cipher = self._handleInput(cipher, type)
 
         perm = self._ip(cipher)
-        L, R = self._split_perm(perm)
+        L, R = perm[:4], perm[4:]
 
         for round in range(3, -1, -1):
             L, R = R, L ^ self._f(R, round)
