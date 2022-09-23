@@ -20,9 +20,11 @@ for i in range(len(cipher_bytes)):
     decrypted_byte = prev ^ pre_decrypted_byte
     # Append the ASCII character value of decrypted_byte to plain
     plain += chr(int((decrypted_byte).hex, base=16))
-    # Save the current encrypted_byte for the next byte in cipher_bytes
+    # Save the current encrypted_byte for decrypting the next byte in cipher_bytes
     prev = encrypted_byte
 
-print('20-bit key:', key)
+print('CBC DS-DES Decryption')
+print('---------------------\n')
+print('20-bit Key:', key, '(' + BitArray(hex=key).bin + ')')
 print('Ciphertext:', cipher)
 print('Plaintext: ', plain)
