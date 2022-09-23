@@ -33,7 +33,7 @@ class SDES:
         Populates the list self.round_keys, each 8 bits long.
 
         The first element used in self.round_keys is to be used in the first round of
-        encryption/decryption. The second element for the second round. And so on.
+        encryption/decryption, the second element for the second round, and so on.
         """
         C, D = self._pc1(self.key)
         # Represents the left shift table for each of the four rounds.
