@@ -9,17 +9,17 @@ class SDES:
     Any returns after encryption/decryption are instances of BitArray.
     """
 
-    def __init__(self, key, type=None):
+    def __init__(self, key, in_type=None):
         """Sets up an instance of SDES with a specified 10-bit hexadecimal or binary key.
 
         Keyword arguments:
         key -- A string representing the key to be used for encryption/decryption.
             Not required to include the base prefix ('0x' or '0b').
             Binary keys must explicitly define 10 bits.
-        type -- The base of the provided key: 
+        in_type -- The base of the provided key: 
             hexadecimal (default, no arg required) or binary ('b').
         """
-        if type == 'b':
+        if in_type == 'b':
             self.key = BitArray(bin=key)
         else:
             # First converts hex string representation to binary
@@ -219,33 +219,33 @@ class SDES:
         B1, B2 = self._s1(B[:4]), self._s2(B[4:])
         return self._p(B1 + B2)
 
-    def _handleInput(self, input, type=None):
+    def _handleInput(self, input, in_type=None):
         """Handles an input message by formatting a binary or hexadecimal
         string representation into a BitArray.
 
         Keyword arguments:
         input -- A string representation of one of the supported types.
-        type -- Supported types are 'h' (hexadecimal, DEFAULT) and 'b' (binary).
+        in_type -- Supported types are 'h' (hexadecimal, DEFAULT) and 'b' (binary).
 
         Returns:
         The resulting BitArray variable from the input.
         """
-        if type == 'b':
+        if in_type == 'b':
             return BitArray(bin=input)
         else:
             return BitArray(hex=input)
 
-    def encrypt(self, plain, type=None):
+    def encrypt(self, plain, in_type=None):
         """The Encrypt Function transforms a plaintext input string into BitArray ciphertext.
 
         Keyword arguments:
         plain -- A string representation of one of the supported types.
-        type -- Supported types are 'h' (hexadecimal, DEFAULT) and 'b' (binary).
+        in_type -- Supported types are 'h' (hexadecimal, DEFAULT) and 'b' (binary).
 
         Returns:
         The encrypted BitArray ciphertext from the input plaintext.
         """
-        plain = self._handleInput(plain, type)
+        plain = self._handleInput(plain, in_type)
 
         # Permutes the plaintext and splits the result into L and R (each 4 bits).
         perm = self._ip(plain)
@@ -261,17 +261,17 @@ class SDES:
         # A final permutation of LR swapped (RL) before returning the ciphertext.
         return self._ipi(R + L)
 
-    def decrypt(self, cipher, type=None):
+    def decrypt(self, cipher, in_type=None):
         """The Decrypt Function transforms a BitArray ciphertext into BitArray plaintext.
 
         Keyword arguments:
         msg -- A string representation of one of the supported types.
-        type -- Supported types are 'h' (hexadecimal, DEFAULT) and 'b' (binary).
+        in_type -- Supported types are 'h' (hexadecimal, DEFAULT) and 'b' (binary).
 
         Returns:
         The decrypted BitArray plaintext from the input ciphertext.
         """
-        cipher = self._handleInput(cipher, type)
+        cipher = self._handleInput(cipher, in_type)
 
         # Permutes the plaintext and splits the result into L and R (each 4 bits).
         perm = self._ip(cipher)
@@ -295,7 +295,7 @@ class DSDES:
     Any returns after encryption/decryption are instances of bitstring.BitArray.
     """
 
-    def __init__(self, key, type=None):
+    def __init__(self, key, in_type=None):
         """Sets up two instances of SDES with a specified 20-bit hexadecimal or binary key.
         The most significant 10 bits are used for the first SDES and
         the least significant 10 bits for the second SDES.
@@ -304,10 +304,10 @@ class DSDES:
         key --  A string representing the key to be used for encryption/decryption.
             Not required to include the base prefix ('0x' or '0b').
             Binary keys must explicitly define 20 bits.
-        type -- The base of the provided key: 
+        in_type -- The base of the provided key: 
             hexadecimal (default, no arg required) or binary ('b').
         """
-        if type == 'b':
+        if in_type == 'b':
             key = BitArray(bin=key)
         else:
             # First converts hex string representation to binary
@@ -317,28 +317,28 @@ class DSDES:
         self.sdes1 = SDES(key[:10].bin, 'b')
         self.sdes2 = SDES(key[10:].bin, 'b')
 
-    def encrypt(self, plain, type=None):
+    def encrypt(self, plain, in_type=None):
         """The Encrypt Function uses the first SDES instance before encrypting for a second time
         with the second SDES instance.
 
         Keyword arguments:
         plain -- A string representation of one of the supported types.
-        type -- Supported types are 'h' (hexadecimal, DEFAULT) and 'b' (binary).
+        in_type -- Supported types are 'h' (hexadecimal, DEFAULT) and 'b' (binary).
 
         Returns:
         The doubly encrypted BitArray ciphertext from the input plaintext.
         """
-        return self.sdes2.encrypt(self.sdes1.encrypt(plain, type).bin, type)
+        return self.sdes2.encrypt(self.sdes1.encrypt(plain, in_type).bin, 'b')
 
-    def decrypt(self, cipher, type=None):
+    def decrypt(self, cipher, in_type=None):
         """The Decrypt Function operates in the reverse order as encrypt(). It uses the second SDES
         instance before decrypting for a second time with the first SDES instance.
 
         Keyword arguments:
         cipher -- A string representation of one of the supported types.
-        type -- Supported types are 'h' (hexadecimal, DEFAULT) and 'b' (binary).
+        in_type -- Supported types are 'h' (hexadecimal, DEFAULT) and 'b' (binary).
 
         Returns:
         The doubly decrypted BitArray plaintext from the input ciphertext.
         """
-        return self.sdes1.decrypt(self.sdes2.decrypt(cipher, type).bin, type)
+        return self.sdes1.decrypt(self.sdes2.decrypt(cipher, in_type).bin, 'b')

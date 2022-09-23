@@ -1,23 +1,28 @@
 from bitstring import BitArray
 from sdes import DSDES
 
-
-# Found keys: K1=1100111111 K2=0101010011 or key=0xCFD53
-# IV = 0x9c
-# Cipher = 0x586519b031aaee9a235247601fb37baefbcd54d8c3763f8523d2a1315ed8bdcc
-myDSDES = DSDES("0xCFD53")
+key = 'cfd53'
+myDSDES = DSDES(key)
 
 iv = BitArray(uint=0x9c, length=8)
+cipher = '586519b031aaee9a235247601fb37baefbcd54d8c3763f8523d2a1315ed8bdcc'
+cipher_bytes = bytearray.fromhex(cipher)
+
 prev = iv
+plain = ''
+for i in range(len(cipher_bytes)):
+    # Take next byte from cipher_bytes and transform into an 8-bit BitArray.
+    encrypted_byte = BitArray(uint=int.from_bytes(
+        cipher_bytes[i:i+1], 'big', signed=False), length=8)
+    # Call the decrypt function on the byte.
+    pre_decrypted_byte = myDSDES.decrypt(encrypted_byte.bin, 'b')
+    # Finish the CBC decryption by XORing by the previous encrypted_byte (or IV).
+    decrypted_byte = prev ^ pre_decrypted_byte
+    # Append the ASCII character value of decrypted_byte to plain
+    plain += chr(int((decrypted_byte).hex, base=16))
+    # Save the current encrypted_byte for the next byte in cipher_bytes
+    prev = encrypted_byte
 
-cipher = [0x58, 0x65, 0x19, 0xb0, 0x31, 0xaa, 0xee, 0x9a, 0x23, 0x52, 0x47, 0x60, 0x1f, 0xb3, 0x7b,
-          0xae, 0xfb, 0xcd, 0x54, 0xd8, 0xc3, 0x76, 0x3f, 0x85, 0x23, 0xd2, 0xa1, 0x31, 0x5e, 0xd8, 0xbd, 0xcc]
-plain = ""
-
-for c in cipher:
-    d = BitArray(uint=c, length=8)
-    x = myDSDES.decrypt(d.bin, 'b')
-    plain += chr(int((prev ^ x).hex, base=16))
-    prev = d
-
-print(plain)
+print('20-bit key:', key)
+print('Ciphertext:', cipher)
+print('Plaintext: ', plain)
