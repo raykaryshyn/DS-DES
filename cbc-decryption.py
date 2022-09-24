@@ -14,7 +14,7 @@ for i in range(len(cipher_bytes)):
     # Take next byte from cipher_bytes and transform into an 8-bit BitArray.
     encrypted_byte = BitArray(bytes=cipher_bytes[i:i+1])
     # Call the decrypt function on the byte.
-    pre_decrypted_byte = myDSDES.decrypt(encrypted_byte.bin, 'b')
+    pre_decrypted_byte = myDSDES.decrypt(encrypted_byte.hex)
     # Finish the CBC decryption by XORing by the previous encrypted_byte (or IV).
     decrypted_byte = prev ^ pre_decrypted_byte
     # Append the ASCII character value of decrypted_byte to plain.
@@ -24,6 +24,6 @@ for i in range(len(cipher_bytes)):
 
 print('CBC DS-DES Decryption')
 print('---------------------\n')
-print('20-bit Key:', key, '(' + BitArray(hex=key).bin + ')')
+print('20-bit key:', key, '(' + BitArray(hex=key).bin + ')')
 print('Ciphertext:', cipher)
 print('Plaintext: ', plain)
