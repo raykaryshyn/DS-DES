@@ -1,24 +1,44 @@
 from bitstring import BitArray
 from sdes import DSDES
+import time
 
-plaintext = [BitArray(uint=0x42, length=8).bin, BitArray(uint=0x72, length=8).bin, BitArray(
-    uint=0x75, length=8).bin, BitArray(uint=0x74, length=8).bin, BitArray(uint=0x65, length=8).bin]
-ciphertext = [BitArray(uint=0x52, length=8).bin, BitArray(uint=0xf0, length=8).bin, BitArray(
-    uint=0xbe, length=8).bin, BitArray(uint=0x69, length=8).bin, BitArray(uint=0x8a, length=8).bin]
-ciphertexts = []
-plaintexts = []
+plaintext = '4272757465'
+ciphertext = '52f0be698a'
+
 found_keys = []
 
-ans = []
-for j in ciphertext:
-    ans.append(j)
-cipher = ''.join(ans)
+print('DS-DES Brute Force Attack')
+print('-------------------------\n')
+print('Attacking...\n')
+
+start_time = time.time()
+
 for i in range(0b100000000000000000000):
-    key = BitArray(uint=i, length=20)
-    myDSDES = DSDES(key.bin, 'b')
-    test = []
-    for j in plaintext:
-        test.append(myDSDES.encrypt(j, 'b').bin)
-    if ''.join(test) == cipher:
-        print(key[:10].bin, key[10:].bin)
+    current_key = BitArray(uint=i, length=20)
+    current_dsdes = DSDES(current_key.bin, 'b')
+    test = ""
+    for j in range(0, len(plaintext), 2):
+        test += current_dsdes.encrypt(plaintext[j:j+2]).hex
+    if ''.join(test) == ciphertext:
+        found_keys.extend([current_key[:10].bin, current_key[10:].bin])
         break
+
+end_time = time.time() - start_time
+
+print('Found keys:', found_keys)
+hex_key = BitArray(bin=''.join(found_keys)).hex
+print('20-bit combined key as hex:', hex_key, '\n')
+
+print('Testing the found key with the given plaintext "' +
+      ''.join([chr(int(plaintext[x:x+2], base=16)) for x in range(0, len(plaintext), 2)]) +
+      '" (' + plaintext + '):')
+print('Provided ciphertext:\n\t', ciphertext)
+
+test_dsdes = DSDES(''.join(found_keys), 'b')
+test_ciphertext = ""
+for j in range(0, len(plaintext), 2):
+    test_ciphertext += test_dsdes.encrypt(plaintext[j:j+2]).hex
+
+print('Generated ciphertext with provided plaintext and found key (' +
+      hex_key + '):\n\t', test_ciphertext)
+print('\nCompleted in', '%.2f' % end_time, 'seconds.')
