@@ -40,7 +40,8 @@ for i in range(0b10000000000):
 end_time = time.time() - start_time
 
 print('Found keys:', found_keys)
-print('20-bit combined key as hex:', BitArray(bin=''.join(found_keys)).hex, '\n')
+hex_key = BitArray(bin=''.join(found_keys)).hex
+print('20-bit combined key as hex:', hex_key, '\n')
 
 print('Testing the found key with the given plaintext "' +
       ''.join([chr(int(plaintext[x:x+2], base=16)) for x in range(0, len(plaintext), 2)]) +
@@ -52,5 +53,6 @@ test_ciphertext = ""
 for j in range(0, len(plaintext), 2):
     test_ciphertext += test_dsdes.encrypt(plaintext[j:j+2]).hex
 
-print('Generated ciphertext with provided plaintext and found key:\n\t', test_ciphertext)
+print('Generated ciphertext with provided plaintext and found key (' +
+      hex_key + '):\n\t', test_ciphertext)
 print('\nCompleted in', '%.2f' % end_time, 'seconds.')
