@@ -43,7 +43,8 @@ print('Found keys:', found_keys)
 print('20-bit combined key as hex:', BitArray(bin=''.join(found_keys)).hex, '\n')
 
 print('Testing the found key with the given plaintext "' +
-      ''.join([chr(int(plaintext[x:x+2], base=16)) for x in range(0, len(plaintext), 2)]) + '" (' + plaintext + '):', )
+      ''.join([chr(int(plaintext[x:x+2], base=16)) for x in range(0, len(plaintext), 2)]) +
+      '" (' + plaintext + '):')
 print('Provided ciphertext:\n\t', ciphertext)
 
 test_dsdes = DSDES(''.join(found_keys), 'b')
