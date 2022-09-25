@@ -35,7 +35,7 @@ def InvPermEKAT(tableIn):
     tableOut = []
 
     for i in range(8):
-        tableOut.append([tableIn[i][1], sdes.encrypt(tableIn[i][1], 'b').bin])
+        tableOut.append([sdes.encrypt(tableIn[i][1], 'b').bin, tableIn[i][1]])
 
     return tableOut
 
@@ -132,15 +132,106 @@ def SubTableDKAT():
     return table
 
 
-print(VarPlainEKAT())
-print(InvPermEKAT(VarPlainEKAT()))
-print(VarKeyEKAT())
-print(PermOpEKAT())
-print(SubTableEKAT())
-print()
+def DidKATPass(desired, function, op_input=None):
+    if (op_input and desired == function(op_input)) or (not op_input and desired == function()):
+        print('+ PASSED:\t', function.__name__)
+    else:
+        print('- FAILED:\t', function.__name__)
 
-print(VarCipherDKAT())
-print(InvPermDKAT(VarCipherDKAT()))
-print(VarKeyDKAT())
-print(PermOpDKAT())
-print(SubTableDKAT())
+
+desired_VarPlainEKAT = [
+    ['10000000', '10101000'],
+    ['01000000', '10111110'],
+    ['00100000', '00010110'],
+    ['00010000', '01001010'],
+    ['00001000', '01001001'],
+    ['00000100', '01001110'],
+    ['00000010', '00010101'],
+    ['00000001', '01101000']]
+desired_VarKeyEKAT = [
+    ['1000000000', '01100001'],
+    ['0100000000', '01100001'],
+    ['0010000000', '01100001'],
+    ['0001000000', '01100001'],
+    ['0000100000', '01100001'],
+    ['0000010000', '01100001'],
+    ['0000001000', '01100001'],
+    ['0000000100', '00010011'],
+    ['0000000010', '01011100'],
+    ['0000000001', '01001110']]
+desired_PermOpEKAT = [
+    ['0000000011', '01001110'],
+    ['0011001010', '10001111'],
+    ['0001011001', '10100001'],
+    ['1011001111', '10100001']]
+desired_SubTableEKAT = [
+    ['0001101101', '10001111'],
+    ['0001101110', '10001111'],
+    ['0001110000', '10101001'],
+    ['0001110001', '10101001'],
+    ['0001110110', '10101001'],
+    ['0001111000', '10101001'],
+    ['0001111001', '10101001']]
+
+desired_VarCipherDKAT = [
+    ['10000000', '10000000'],
+    ['01000000', '01000000'],
+    ['00100000', '00100000'],
+    ['00010000', '00010000'],
+    ['00001000', '00001000'],
+    ['00000100', '00000100'],
+    ['00000010', '00000010'],
+    ['00000001', '00000001']]
+desired_InvPermDKAT = [
+    ['10000000', '10101000'],
+    ['01000000', '10111110'],
+    ['00100000', '00010110'],
+    ['00010000', '01001010'],
+    ['00001000', '01001001'],
+    ['00000100', '01001110'],
+    ['00000010', '00010101'],
+    ['00000001', '01101000']]
+desired_VarKeyDKAT = [
+    ['1000000000', '00000000'],
+    ['0100000000', '00000000'],
+    ['0010000000', '00000000'],
+    ['0001000000', '00000000'],
+    ['0000100000', '00000000'],
+    ['0000010000', '00000000'],
+    ['0000001000', '00000000'],
+    ['0000000100', '00000000'],
+    ['0000000010', '00000000'],
+    ['0000000001', '00000000']]
+desired_PermOpDKAT = [
+    ['0000000011', '00000000'],
+    ['0011001010', '00000000'],
+    ['0001011001', '00000000'],
+    ['1011001111', '00000000']]
+desired_SubTableDKAT = [
+    ['0001101101', '00000000'],
+    ['0001101110', '00000000'],
+    ['0001110000', '00000000'],
+    ['0001110001', '00000000'],
+    ['0001110110', '00000000'],
+    ['0001111000', '00000000'],
+    ['0001111001', '00000000']]
+
+
+print('DS-DES Known Answer Tests (KATs)')
+print('--------------------------------\n')
+
+print('Encryption KATs:')
+
+DidKATPass(desired_VarPlainEKAT, VarPlainEKAT)
+DidKATPass(desired_VarPlainEKAT, InvPermEKAT, VarPlainEKAT())
+DidKATPass(desired_VarKeyEKAT, VarKeyEKAT)
+DidKATPass(desired_PermOpEKAT, PermOpEKAT)
+DidKATPass(desired_SubTableEKAT, SubTableEKAT)
+
+print('\nDecryption KATs:')
+
+DidKATPass(desired_VarCipherDKAT, VarCipherDKAT)
+DidKATPass(desired_InvPermDKAT, InvPermDKAT, VarCipherDKAT())
+DidKATPass(desired_VarKeyDKAT, VarKeyDKAT)
+DidKATPass(desired_PermOpDKAT, PermOpDKAT)
+DidKATPass(desired_SubTableDKAT, SubTableDKAT)
