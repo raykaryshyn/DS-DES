@@ -4,7 +4,7 @@ from sdes import SDES
 
 def VarPlainEKAT():
     key = '0000000000'
-    sdes = SDES(key)
+    sdes = SDES(key, 'b')
     p = BitArray(bin='10000000')
     table = []
 
@@ -17,7 +17,7 @@ def VarPlainEKAT():
 
 def VarCipherDKAT():
     key = '0000000000'
-    sdes = SDES(key)
+    sdes = SDES(key, 'b')
     p = BitArray(bin='10000000')
     table = []
 
@@ -31,7 +31,7 @@ def VarCipherDKAT():
 
 def InvPermEKAT(tableIn):
     key = '0000000000'
-    sdes = SDES(key)
+    sdes = SDES(key, 'b')
     tableOut = []
 
     for i in range(8):
@@ -42,7 +42,7 @@ def InvPermEKAT(tableIn):
 
 def InvPermDKAT(tableIn):
     key = '0000000000'
-    sdes = SDES(key)
+    sdes = SDES(key, 'b')
     tableOut = []
 
     for i in range(8):
@@ -53,21 +53,21 @@ def InvPermDKAT(tableIn):
 
 def VarKeyEKAT():
     key = BitArray(bin='1000000000')
-    sdes = SDES(str(key.bin))
+    sdes = SDES(str(key.bin), 'b')
     p = '00000000'
     table = []
 
     for _ in range(10):
         table.append([str(key.bin), sdes.encrypt(p, 'b').bin])
         key.ror(1)
-        sdes = SDES(str(key.bin))
+        sdes = SDES(str(key.bin), 'b')
 
     return table
 
 
 def VarKeyDKAT():
     key = BitArray(bin='1000000000')
-    sdes = SDES(str(key.bin))
+    sdes = SDES(str(key.bin), 'b')
     p = '00000000'
     table = []
 
@@ -75,7 +75,7 @@ def VarKeyDKAT():
         c = sdes.encrypt(p, 'b').bin
         table.append([str(key.bin), sdes.decrypt(c, 'b').bin])
         key.ror(1)
-        sdes = SDES(str(key.bin))
+        sdes = SDES(str(key.bin), 'b')
 
     return table
 
@@ -86,7 +86,7 @@ def PermOpEKAT():
     table = []
 
     for i in range(4):
-        sdes = SDES(keys[i])
+        sdes = SDES(keys[i], 'b')
         table.append([keys[i], sdes.encrypt(p, 'b').bin])
 
     return table
@@ -98,7 +98,7 @@ def PermOpDKAT():
     table = []
 
     for i in range(4):
-        sdes = SDES(keys[i])
+        sdes = SDES(keys[i], 'b')
         c = sdes.encrypt(p, 'b').bin
         table.append([keys[i], sdes.decrypt(c, 'b').bin])
 
@@ -112,7 +112,7 @@ def SubTableEKAT():
     table = []
 
     for i in range(7):
-        sdes = SDES(keys[i])
+        sdes = SDES(keys[i], 'b')
         table.append([keys[i], sdes.encrypt(p, 'b').bin])
 
     return table
@@ -125,7 +125,7 @@ def SubTableDKAT():
     table = []
 
     for i in range(7):
-        sdes = SDES(keys[i])
+        sdes = SDES(keys[i], 'b')
         c = sdes.encrypt(p, 'b').bin
         table.append([keys[i], sdes.decrypt(c, 'b').bin])
 
@@ -150,28 +150,28 @@ desired_VarPlainEKAT = [
     ['00000001', '01101000']]
 desired_VarKeyEKAT = [
     ['1000000000', '01100001'],
-    ['0100000000', '01100001'],
-    ['0010000000', '01100001'],
-    ['0001000000', '01100001'],
-    ['0000100000', '01100001'],
-    ['0000010000', '01100001'],
-    ['0000001000', '01100001'],
-    ['0000000100', '00010011'],
-    ['0000000010', '01011100'],
+    ['0100000000', '00010011'],
+    ['0010000000', '01001111'],
+    ['0001000000', '11100101'],
+    ['0000100000', '01100101'],
+    ['0000010000', '01011100'],
+    ['0000001000', '10101110'],
+    ['0000000100', '11011001'],
+    ['0000000010', '10101010'],
     ['0000000001', '01001110']]
 desired_PermOpEKAT = [
-    ['0000000011', '01001110'],
-    ['0011001010', '10001111'],
-    ['0001011001', '10100001'],
-    ['1011001111', '10100001']]
+    ['0000000011', '00000011'],
+    ['0011001010', '00100010'],
+    ['0001011001', '01000000'],
+    ['1011001111', '01100000']]
 desired_SubTableEKAT = [
-    ['0001101101', '10001111'],
-    ['0001101110', '10001111'],
-    ['0001110000', '10101001'],
-    ['0001110001', '10101001'],
-    ['0001110110', '10101001'],
-    ['0001111000', '10101001'],
-    ['0001111001', '10101001']]
+    ['0001101101', '10000111'],
+    ['0001101110', '10110110'],
+    ['0001110000', '10110100'],
+    ['0001110001', '00110011'],
+    ['0001110110', '11011001'],
+    ['0001111000', '10001101'],
+    ['0001111001', '00010001']]
 
 desired_VarCipherDKAT = [
     ['10000000', '10000000'],
