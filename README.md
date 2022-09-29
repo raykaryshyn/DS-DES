@@ -1,6 +1,6 @@
-# (D)S-DES
+# DS-DES Project
 
-Contains both the implementation, tests, and exploitation of (Double) Simplified Data Encryption Standard.
+Contains both the implementation, tests, and exploitation of Double Simplified Data Encryption Standard.
 
 - **Implementation**
     - *sdes.py* (contains both S-DES and DS-DES)
